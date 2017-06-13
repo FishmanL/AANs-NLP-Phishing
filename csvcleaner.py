@@ -1,0 +1,7 @@
+f = open('TestingData1.csv')
+contents = f.read()
+f.close()
+new_contents = contents.replace('.', '\n')
+f = open('TestingData.csv', 'w')
+f.write(new_contents)
+f.close()
