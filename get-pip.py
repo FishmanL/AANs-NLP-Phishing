@@ -1,8 +1,8 @@
 import tensorflow as tf
 import tensorflow.contrib
 import numpy as np
-IRIS_TRAINING = "TrainingData.csv"
-IRIS_TEST = "TestingData.csv"
+IRIS_TRAINING = "TrainingData1.csv"
+IRIS_TEST = "TestingData1.csv"
 #returns False if the index is outside the array bounds or if the array value at that index isn’t searchterm
 def arraysearch(a, searchterm, sindex):
     if sindex>=len(a):
@@ -76,13 +76,17 @@ def model_fn(features, targets, mode, params):
   output_layer = tf.contrib.layers.linear(second_hidden_layer, 2)
 
   # Reshape output layer to 1-dim Tensor to return predictions
+
   labels = tf.one_hot(indices=tf.cast(targets, tf.int32), depth=2)
   predictions = output_layer
 
   # Calculate loss using mean squared error
-  weight = tf.multiply(4.0, tf.cast(tf.equal(labels, 1), tf.float32)+1)
+  #weight = tf.multiply(5.0, tf.cast(tf.equal(labels, [1, 0]), tf.float32))
+  #weight=0.5
 
-  loss = tf.losses.mean_squared_error(labels, predictions, weights=weight)
+  loss = tf.losses.sigmoid_cross_entropy(labels, predictions)
+  ''', weights=tf.constant([[1], [5]]))'''
+  weight=1.0
 
   # Calculate root mean squared error as additional eval metric
   eval_metric_ops = {
@@ -118,24 +122,64 @@ def model_fn(features, targets, mode, params):
       train_op=train_op,
       eval_metric_ops=eval_metric_ops)
 # Build multilayer DNN with current array of layers and nodes, set <x to 6 on server.
+
+
 while len(optimizerarraycurrent)==3:
     for i in range(ba):
         # create model
+        #weight = tf.multiply(15.0, tf.cast(tf.equal(y_train, 1), tf.float32) + 1)
 
-        #classifier = tf.contrib.learn.DNNClassifier(feature_columns=feature_columns, hidden_units=optimizerarraycurrent, n_classes=2)
-        nn = tf.contrib.learn.Estimator(model_fn=model_fn)
+        classifier = tf.contrib.learn.DNNClassifier(feature_columns=feature_columns, hidden_units=optimizerarraycurrent, n_classes=2)
+        #nn = tf.contrib.learn.Estimator(model_fn=model_fn)
         print("Hi")
         # Fit model.
-        #classifier.fit(x=x_train, y=y_train, steps=1000)
-        nn.fit(x=x_train, y=y_train, steps=1000)
+        classifier.fit(x=x_train, y=y_train, steps=1000)
+        y=classifier.predict_classes(x_test)
+        y=list(y)
+        tn=0
+        tp=0
+        fn=0
+        fp=0
+        for c in range(len(y)):
+            #print(y_test[c])
+            if y[c]==0 and y_test[c]==0.0:
+               tn+=1
+            if y[c]==1 and y_test[c]==0.0:
+                fp+=1
+            if y[c]==1 and y_test[c]==1.0:
+                tp+=1
+            if y[c]==0 and y_test[c]==1.0:
+                fn+=1
+        trueprecision=tp/(tp+fp)
+        avgprecision+=trueprecision
+        truerecall=tp/(tp+fn)
+        avgrecall+=truerecall
+        truef1=trueprecision*truerecall
+        avgf1+=truef1
+        print("True precision: %s" % trueprecision)
+        print("True recall: %s" % truerecall)
+        print("True f1: %s" % truef1)
+        print("true fp: %s" % fp)
+        print("true tp: %s" % tp)
+        print("true fn: %s" % fn)
+        print("true tn: %s" % tn)
+
+        '''nn.fit(x=x_train, y=y_train, steps=1000)
         ev = nn.evaluate(x=x_test, y=y_test, steps=1)
         print("Loss: %s" % ev["loss"])
         print("Precision: %s" % ev["precision"])
+        p=ev["precision"]
+        avgprecision+=p
         print("Recall: %s" % ev["recall"])
+        r=ev["recall"]
+        avgrecall+=r
+        f1=p*r
+        print("F1: %s" % f1)
+        avgf1+=f1
         print("Auc: %s" % ev["auc"])
         print("TP: %s" % ev["tp"])
         print("FP: %s" % ev["fp"])
-        print("FN: %s" % ev["fn"])
+        print("FN: %s" % ev["fn"])'''
 
     # at this point the program calculates the average f1 and auc for this setup of layers and nodes
     avgf1 = avgf1 / ba
