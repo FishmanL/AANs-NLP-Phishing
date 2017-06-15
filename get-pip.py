@@ -2,12 +2,12 @@ import tensorflow as tf
 import tensorflow.contrib
 import numpy as np
 IRIS_TRAINING = "TrainingData1.csv"
-IRIS_TEST = "attackfile2358.csv"
+IRIS_TEST = "attackfile2358iju.csv"
 #get the number of bits flipped in the attack file
 bitsflipped=0
 while IRIS_TEST[bitsflipped]!='.':
     bitsflipped+=1
-bitsflipped-=9
+bitsflipped-=10
 #returns False if the index is outside the array bounds or if the array value at that index isn’t searchterm
 def arraysearch(a, searchterm, sindex):
     if sindex>=len(a):
