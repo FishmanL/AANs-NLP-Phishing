@@ -2,7 +2,12 @@ import tensorflow as tf
 import tensorflow.contrib
 import numpy as np
 IRIS_TRAINING = "TrainingData1.csv"
-IRIS_TEST = "TestingData1.csv"
+IRIS_TEST = "attackfile2358.csv"
+#get the number of bits flipped in the attack file
+bitsflipped=0
+while IRIS_TEST[bitsflipped]!='.':
+    bitsflipped+=1
+bitsflipped-=9
 #returns False if the index is outside the array bounds or if the array value at that index isn’t searchterm
 def arraysearch(a, searchterm, sindex):
     if sindex>=len(a):
@@ -33,7 +38,7 @@ x_train, x_test, y_train, y_test = training_set.data, test_set.data, \
 feature_columns = [tf.contrib.layers.real_valued_column("", dimension=31)]
 pos=0
 #get and print the number of positive examples(parse check)
-print(y_train)
+'''print(y_train)
 print(y_test)
 for a in y_train:
     if a==1:
@@ -43,22 +48,22 @@ pos=0
 for a in y_test:
     if a==1:
         pos=pos+1
-print(pos)
+print(pos)'''
 #number of times over which to average the network
-ba=20
+ba=10
 # initializing relevant variables(ba=number of loops per avg f1, all else self explanatory)
 avgauc = 0
 avgf1 = 0
 avgprecision=0
 avgrecall=0
-ba = 20
+#ba is the number of trials
 optimizerarraystart = [20, 20, 20]
 optimizerarraycurrent = [20, 20, 20];
 maxoptimizerarray = optimizerarraystart;
 maxavgf1 = 0
 
-
-def model_fn(features, targets, mode, params):
+#Deprecated model_fn
+'''def model_fn(features, targets, mode, params):
 
   """Model function for Estimator."""
 
@@ -85,7 +90,7 @@ def model_fn(features, targets, mode, params):
   #weight=0.5
 
   loss = tf.losses.sigmoid_cross_entropy(labels, predictions)
-  ''', weights=tf.constant([[1], [5]]))'''
+  '''''', weights=tf.constant([[1], [5]]))''''''
   weight=1.0
 
   # Calculate root mean squared error as additional eval metric
@@ -120,7 +125,7 @@ def model_fn(features, targets, mode, params):
       predictions=predictions,
       loss=loss,
       train_op=train_op,
-      eval_metric_ops=eval_metric_ops)
+      eval_metric_ops=eval_metric_ops)'''
 # Build multilayer DNN with current array of layers and nodes, set <x to 6 on server.
 
 
@@ -134,12 +139,12 @@ while len(optimizerarraycurrent)==3:
         print("Hi")
         # Fit model.
         classifier.fit(x=x_train, y=y_train, steps=1000)
-        y=classifier.predict_classes(x_test)
-        y=list(y)
-        tn=0
-        tp=0
-        fn=0
-        fp=0
+        y = classifier.predict_classes(x_test)
+        y = list(y)
+        tn = 0
+        tp = 0
+        fn = 0
+        fp = 0
         for c in range(len(y)):
             #print(y_test[c])
             if y[c]==0 and y_test[c]==0.0:
@@ -183,11 +188,21 @@ while len(optimizerarraycurrent)==3:
 
     # at this point the program calculates the average f1 and auc for this setup of layers and nodes
     avgf1 = avgf1 / ba
+    goodf1=.855
+    delf1=goodf1-avgf1
     avgprecision = avgprecision / ba
+    goodprecision=.908
+    delprecision=goodprecision-avgprecision
     avgrecall = avgrecall / ba
+    goodrecall=.941
+    delrecall=goodrecall-avgrecall
     print("Average f1: " + str(avgf1))
     print("Average precision(Fraction of emails marked as nonspam that were nonspam): " + str(avgprecision))
     print("Average recall(fraction of emails that are nonspam marked as nonspam): " + str(avgrecall))
+    print("Bits flipped: %s" % bitsflipped)
+    print("Change in f1: %s" % delf1)
+    print("Change in precision: %s" % delprecision)
+    print("Change in recall: %s" % delrecall)
     # here's the maximization code
     if avgf1 > maxavgf1:
         maxoptimizerarray = optimizerarraycurrent
@@ -196,5 +211,5 @@ while len(optimizerarraycurrent)==3:
     # here we get the lexicographically next setup of nodes and layers
     optimizerarraycurrent = testincrements(optimizerarraycurrent, 20, 20, 15)
 # after the program has tested every setup of nodes and layers given it's starting params, we print out the best setup and its average f1
-print(str(maxoptimizerarray))
-print(str(maxavgf1))
+#print(str(maxoptimizerarray))
+#print(str(maxavgf1))
