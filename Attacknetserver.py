@@ -36,7 +36,7 @@ bitflippedguide1 = [0, 1, 2, 3, 4, 5, 19, 7, 9, 11, 12, 13, 14, 16, 17, 18, 20, 
 bitflippedguide = [1, 2, 4, 7, 9, 11, 12, 13, 14, 16, 17, 18, 29]
 bitflippedlist = subs(bitflippedguide)
 namearray = []
-outputfile=open("output.txt", "wa+")
+
 mdfa=0
 mdfaname=""
 bitflipped = [0, 1, 2, 4, 7, 9, 11, 12, 13, 14, 16, 17, 18, 20]
@@ -60,6 +60,7 @@ def attackfun():
 #tab everything after the for loop except for the end print before putting it on a server, don't do this on computer
 attackfun()
 for name in namearray:
+
     IRIS_TEST=name
     #IRIS_TEST = "attackfile2358iju.csv"
     #get the number of bits flipped in the attack file
@@ -248,7 +249,9 @@ for name in namearray:
         if mdfa<delf1adjusted:
             mdfa=delf1adjusted
             mdfaname=name
+            outputfile = open("output.txt", "wa+")
             outputfile.write("New ideal perturb: " + mdfaname + "; perturbation performance weighted: %s\r\n" % mdfa)
+            outputfile.close()
         print("Change in precision: %s" % delprecision)
         print("Change in recall: %s" % delrecall)
         # here's the maximization code
