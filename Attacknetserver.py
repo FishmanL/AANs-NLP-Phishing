@@ -250,7 +250,7 @@ for name in namearray:
             mdfa=delf1adjusted
             mdfaname=name
             outputfile = open("output.txt", "wa+")
-            outputfile.write("New ideal perturb: " + mdfaname + "; perturbation performance weighted: %s\r\n" % mdfa)
+            outputfile.append("New ideal perturb: " + mdfaname + "; perturbation performance weighted: %s\r\n" % mdfa)
             outputfile.close()
         print("Change in precision: %s" % delprecision)
         print("Change in recall: %s" % delrecall)
