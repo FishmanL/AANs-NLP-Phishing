@@ -249,7 +249,7 @@ for name in namearray:
         if mdfa<delf1adjusted:
             mdfa=delf1adjusted
             mdfaname=name
-            outputfile = open("output.txt", "wa+")
+            outputfile = open("output.txt", "a+")
             outputfile.append("New ideal perturb: " + mdfaname + "; perturbation performance weighted: %s\r\n" % mdfa)
             outputfile.close()
         print("Change in precision: %s" % delprecision)
