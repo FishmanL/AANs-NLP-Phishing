@@ -1,14 +1,9 @@
 import tensorflow as tf
 import tensorflow.contrib
 import numpy as np
-IRIS_TRAINING = "TrainingData1.csv"
-IRIS_TEST = "attackfile2358iju.csv"
-#get the number of bits flipped in the attack file
-bitsflipped=0
-while IRIS_TEST[bitsflipped]!='.':
-    bitsflipped+=1
-bitsflipped-=10
-#returns False if the index is outside the array bounds or if the array value at that index isn’t searchterm
+import csv
+
+
 def arraysearch(a, searchterm, sindex):
     if sindex>=len(a):
         return False
@@ -28,6 +23,48 @@ def testincrements(a, start, end, increment):
     else:
         a[c]=a[c]+increment
         return a
+def subs(l):
+    if l == []:
+        return [[]]
+
+    x = subs(l[1:])
+
+    return x + [[l[0]] + y for y in x]
+IRIS_TRAINING = "TrainingData1.csv"
+bitflippedguide1 = [0, 1, 2, 3, 4, 5, 19, 7, 9, 11, 12, 13, 14, 16, 17, 18, 20, 21, 22, 29]
+bitflippedguide = [1, 2, 4, 7, 9, 11, 12, 13, 14, 16, 17, 18, 29]
+bitflippedlist = subs(bitflippedguide)
+namearray = []
+bitflipped = [0, 1, 2, 4, 7, 9, 11, 12, 13, 14, 16, 17, 18, 20]
+def attackfun():
+    r = csv.reader(open('TestingData1.csv'))  # Here your csv file
+    lines = [l for l in r]
+    for y in bitflippedlist:
+        for line in lines:
+            for x in y:
+                line[x] = 1
+        name = ""
+        namestring = "123456789abcdefghijklmnopqrstuv"
+
+        for x in y:
+            name = name + namestring[x]
+        name = "attackfile" + name + ".csv"
+        namearray.append(name)
+        print(name)
+        writer = csv.writer(open(name, 'w'))
+        writer.writerows(lines)
+#tab everything after the for loop except for the end print before putting it on a server, don't do this on computer
+#attackfun()
+#for name in namearray:
+#IRIS_TEST=name
+IRIS_TEST = "attackfile2358iju.csv"
+#get the number of bits flipped in the attack file
+bitsflipped=0
+while IRIS_TEST[bitsflipped]!='.':
+    bitsflipped+=1
+bitsflipped-=10
+#returns False if the index is outside the array bounds or if the array value at that index isn’t searchterm
+
 
 # Load datasets.
 training_set = tf.contrib.learn.datasets.base.load_csv_without_header(filename=IRIS_TRAINING, features_dtype=np.float64, target_dtype=np.float64)
@@ -56,6 +93,9 @@ avgauc = 0
 avgf1 = 0
 avgprecision=0
 avgrecall=0
+delf1adjusted=0
+mdfa=0
+mdfaname=""
 #ba is the number of trials
 optimizerarraystart = [20, 20, 20]
 optimizerarraycurrent = [20, 20, 20];
@@ -201,6 +241,10 @@ while len(optimizerarraycurrent)==3:
     print("Average recall(fraction of emails that are nonspam marked as nonspam): " + str(avgrecall))
     print("Bits flipped: %s" % bitsflipped)
     print("Change in f1: %s" % delf1)
+    delf1adjusted=delf1/bitsflipped
+    if mdfa<delf1adjusted:
+        mdfa=delf1adjusted
+        mdfaname=name
     print("Change in precision: %s" % delprecision)
     print("Change in recall: %s" % delrecall)
     # here's the maximization code
@@ -210,6 +254,7 @@ while len(optimizerarraycurrent)==3:
     # change these values as needed(20, 50, 15) are suggested for last 3 params
     # here we get the lexicographically next setup of nodes and layers
     optimizerarraycurrent = testincrements(optimizerarraycurrent, 20, 20, 15)
-# after the program has tested every setup of nodes and layers given it's starting params, we print out the best setup and its average f1
-#print(str(maxoptimizerarray))
-#print(str(maxavgf1))
+
+# after the program has tested every possible permutation of attacks
+print("Ideal perturbation function: " + name)
+print("Perturbation performance: %s" % mdfa)
