@@ -185,20 +185,20 @@ for name in namearray:
             classifier.fit(x=x_train, y=y_train, steps=1000)
             y = classifier.predict_classes(x_test)
             y = list(y)
-            tn = 0
-            tp = 0
-            fn = 0
-            fp = 0
+            tn = 0.0
+            tp = 0.0
+            fn = 0.0
+            fp = 0.0
             for c in range(len(y)):
                 #print(y_test[c])
                 if y[c]==0 and y_test[c]==0.0:
-                   tn+=1
+                   tn+=1.0
                 if y[c]==1 and y_test[c]==0.0:
-                    fp+=1
+                    fp+=1.0
                 if y[c]==1 and y_test[c]==1.0:
-                    tp+=1
+                    tp+=1.0
                 if y[c]==0 and y_test[c]==1.0:
-                    fn+=1
+                    fn+=1.0
             trueprecision=tp/(tp+fp)
             avgprecision+=trueprecision
             truerecall=tp/(tp+fn)
@@ -245,12 +245,15 @@ for name in namearray:
         print("Average recall(fraction of emails that are nonspam marked as nonspam): " + str(avgrecall))
         print("Bits flipped: %s" % bitsflipped)
         print("Change in f1: %s" % delf1)
-        delf1adjusted=delf1/bitsflipped
+        if bitsflipped>0:
+            delf1adjusted=delf1/bitsflipped
+        else:
+            delf1adjusted=delf1
         if mdfa<delf1adjusted:
             mdfa=delf1adjusted
             mdfaname=name
             outputfile = open("output.txt", "a+")
-            outputfile.append("New ideal perturb: " + mdfaname + "; perturbation performance weighted: %s\r\n" % mdfa)
+            outputfile.write("New ideal perturb: " + mdfaname + "; perturbation performance weighted: %s\r\n" % mdfa)
             outputfile.close()
         print("Change in precision: %s" % delprecision)
         print("Change in recall: %s" % delrecall)
