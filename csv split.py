@@ -7,7 +7,7 @@ x=round(x)
 print(x)
 i=0
 open(str(filename1) + '.csv', 'w+').writelines(csvfile[i:x])
-i=2138
+i=x
 open(str(filename2) + '.csv', 'w+').writelines(csvfile[i:len(csvfile)])
 i+=x*.25
 print(len(csvfile))
