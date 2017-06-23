@@ -1,4 +1,5 @@
 import random
+#shuffle csv randomly
 with open('dataset.csv','r') as source:
     data = [ (random.random(), line) for line in source ]
 data.sort()

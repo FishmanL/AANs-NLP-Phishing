@@ -1,4 +1,5 @@
 import csv
+#split csv into training and test set
 csvfile = open('dataset1', 'r').readlines()
 filename1 = "TrainingData"
 filename2="TestingData"

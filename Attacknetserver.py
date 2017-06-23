@@ -31,14 +31,17 @@ def subs(l):
     x = subs(l[1:])
 
     return x + [[l[0]] + y for y in x]
+#values holding ideal perturbation function
+mdfa=0
+mdfaname=""
+#place training data here
 IRIS_TRAINING = "TrainingData1.csv"
+#perturbation function--see attackfunc.py for comments
 bitflippedguide1 = [0, 1, 2, 3, 4, 5, 19, 7, 9, 11, 12, 13, 14, 16, 17, 18, 20, 21, 22, 29]
 bitflippedguide = [1, 2, 4, 7, 9, 11, 12, 13, 14, 16, 17, 18, 29]
 bitflippedlist = subs(bitflippedguide)
 namearray = []
 
-mdfa=0
-mdfaname=""
 bitflipped = [0, 1, 2, 4, 7, 9, 11, 12, 13, 14, 16, 17, 18, 20]
 def attackfun():
     r = csv.reader(open('TestingData1.csv'))  # Here your csv file
@@ -59,15 +62,17 @@ def attackfun():
         writer.writerows(lines)
 #tab everything after the for loop except for the end print before putting it on a server, don't do this on computer
 attackfun()
+#iterate through all possible perturbations
 for name in namearray:
 
     IRIS_TEST=name
     #IRIS_TEST = "attackfile2358iju.csv"
-    #get the number of bits flipped in the attack file
+    #get the number of bits flipped in the attack file, then reweight
     bitsflipped=0
     while IRIS_TEST[bitsflipped]!='.':
         bitsflipped+=1
     bitsflipped-=10
+    bitsflipped=float(round(np.sqrt(bitsflipped)))
     #returns False if the index is outside the array bounds or if the array value at that index isn’t searchterm
 
 
@@ -78,9 +83,10 @@ for name in namearray:
     x_train, x_test, y_train, y_test = training_set.data, test_set.data, \
       training_set.target, test_set.target
     feature_columns = [tf.contrib.layers.real_valued_column("", dimension=31)]
-    pos=0
+
     #get and print the number of positive examples(parse check)
-    '''print(y_train)
+    '''pos=0
+    print(y_train)
     print(y_test)
     for a in y_train:
         if a==1:
@@ -94,7 +100,6 @@ for name in namearray:
     #number of times over which to average the network
     ba=10
     # initializing relevant variables(ba=number of loops per avg f1, all else self explanatory)
-    avgauc = 0
     avgf1 = 0
     avgprecision=0
     avgrecall=0
@@ -180,9 +185,10 @@ for name in namearray:
 
             classifier = tf.contrib.learn.DNNClassifier(feature_columns=feature_columns, hidden_units=optimizerarraycurrent, n_classes=2)
             #nn = tf.contrib.learn.Estimator(model_fn=model_fn)
-            print("Hi")
+            print("Hi\n")
             # Fit model.
             classifier.fit(x=x_train, y=y_train, steps=1000)
+            #evaluate model
             y = classifier.predict_classes(x_test)
             y = list(y)
             tn = 0.0
@@ -205,13 +211,13 @@ for name in namearray:
             avgrecall+=truerecall
             truef1=trueprecision*truerecall
             avgf1+=truef1
-            print("True precision: %s" % trueprecision)
-            print("True recall: %s" % truerecall)
-            print("True f1: %s" % truef1)
-            print("true fp: %s" % fp)
-            print("true tp: %s" % tp)
-            print("true fn: %s" % fn)
-            print("true tn: %s" % tn)
+            print("True precision: %s\n" % trueprecision)
+            print("True recall: %s\n" % truerecall)
+            print("True f1: %s\n" % truef1)
+            print("true fp: %s\n" % fp)
+            print("true tp: %s\n" % tp)
+            print("true fn: %s\n" % fn)
+            print("true tn: %s\n" % tn)
 
             '''nn.fit(x=x_train, y=y_train, steps=1000)
             ev = nn.evaluate(x=x_test, y=y_test, steps=1)
@@ -230,7 +236,7 @@ for name in namearray:
             print("FP: %s" % ev["fp"])
             print("FN: %s" % ev["fn"])'''
 
-        # at this point the program calculates the average f1 and auc for this setup of layers and nodes
+        # at this point the program calculates the average f1 over ba trials, then gets the change in f1, precision and recall for the given attack function
         avgf1 = avgf1 / ba
         goodf1=.855
         delf1=goodf1-avgf1
@@ -240,32 +246,30 @@ for name in namearray:
         avgrecall = avgrecall / ba
         goodrecall=.941
         delrecall=goodrecall-avgrecall
-        print("Average f1: " + str(avgf1))
-        print("Average precision(Fraction of emails marked as nonspam that were nonspam): " + str(avgprecision))
-        print("Average recall(fraction of emails that are nonspam marked as nonspam): " + str(avgrecall))
-        print("Bits flipped: %s" % bitsflipped)
-        print("Change in f1: %s" % delf1)
+        print("Average f1: " + str(avgf1) + "\n")
+        print("Average precision(Fraction of emails marked as nonspam that were nonspam): " + str(avgprecision) +"\n")
+        print("Average recall(fraction of emails that are nonspam marked as nonspam): " + str(avgrecall)+"\n")
+        print("Bits flipped: %s\n" % bitsflipped)
+        print("Change in f1: %s\n" % delf1)
         if bitsflipped>0:
             delf1adjusted=delf1/bitsflipped
         else:
             delf1adjusted=delf1
         if mdfa<delf1adjusted:
+            #retrieve ideal perturbation function if changed
             mdfa=delf1adjusted
             mdfaname=name
             outputfile = open("output.txt", "a+")
             outputfile.write("New ideal perturb: " + mdfaname + "; perturbation performance weighted: %s\r\n" % mdfa)
             outputfile.close()
-        print("Change in precision: %s" % delprecision)
-        print("Change in recall: %s" % delrecall)
+        print("Change in precision: %s\n" % delprecision)
+        print("Change in recall: %s\n" % delrecall)
         # here's the maximization code
-        if avgf1 > maxavgf1:
-            maxoptimizerarray = optimizerarraycurrent
-            maxavgf1 = avgf1
         # change these values as needed(20, 50, 15) are suggested for last 3 params
         # here we get the lexicographically next setup of nodes and layers
         optimizerarraycurrent = testincrements(optimizerarraycurrent, 20, 20, 15)
 
-# after the program has tested every possible permutation of attacks
-print("Ideal perturbation function: " + name)
-print("Perturbation performance: %s" % mdfa)
+# after the program has tested every possible permutation of attacks print the best
+print("Ideal perturbation function: " + name +"\n")
+print("Perturbation performance: %s\n" % mdfa)
 outputfile.close()
