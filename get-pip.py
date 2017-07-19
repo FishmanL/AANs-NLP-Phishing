@@ -31,7 +31,8 @@ def subs(l):
 
     return x + [[l[0]] + y for y in x]
 #place training data here
-IRIS_TRAINING = "TrainingData1.csv"
+#IRIS_TRAINING = "TrainingData1.csv"
+IRIS_TRAINING="PerturbTrainingData.csv"
 #perturbation function--see attackfunc.py for comments
 bitflippedguide1 = [0, 1, 2, 3, 4, 5, 19, 7, 9, 11, 12, 13, 14, 16, 17, 18, 20, 21, 22, 29]
 bitflippedguide = [1, 2, 4, 7, 9, 11, 12, 13, 14, 16, 17, 18, 29]
@@ -57,7 +58,8 @@ def attackfun():
         writer.writerows(lines)
 #tab everything after the for loop except for the end print before putting it on a server, don't do this on computer
 #this function tests individual attack files, due to processing power constraints
-IRIS_TEST = "attackfile2358iju.csv"
+#IRIS_TEST = "attackfile2358iju.csv"
+IRIS_TEST="PerturbTestingData.csv"
 name=IRIS_TEST
 #get the number of bits flipped in the attack file
 bitsflipped=0
@@ -75,7 +77,7 @@ x_train, x_test, y_train, y_test = training_set.data, test_set.data, \
 feature_columns = [tf.contrib.layers.real_valued_column("", dimension=31)]
 
 #get and print the number of positive examples(parse check)
-'''pos=0
+pos=0
 print(y_train)
 print(y_test)
 for a in y_train:
@@ -86,7 +88,12 @@ pos=0
 for a in y_test:
     if a==1:
         pos=pos+1
-print(pos)'''
+print(pos)
+pos=0
+for a in y_test:
+    if a==0:
+        pos=pos+1
+print(pos)
 #number of times over which to average the network
 ba=10
 # initializing relevant variables(ba=number of loops per avg f1, all else self explanatory)
