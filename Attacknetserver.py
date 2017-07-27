@@ -36,6 +36,8 @@ mdfa=0
 mdfaname=""
 #place training data here
 IRIS_TRAINING = "TrainingData1.csv"
+Perturb_Training="PerturbTrainingData.csv"
+
 #perturbation function--see attackfunc.py for comments
 bitflippedguide1 = [0, 1, 2, 3, 4, 5, 19, 7, 9, 11, 12, 13, 14, 16, 17, 18, 20, 21, 22, 29]
 bitflippedguide = [1, 2, 4, 7, 9, 11, 12, 13, 14, 16, 17, 18, 29]
@@ -60,12 +62,31 @@ def attackfun():
         print(name)
         writer = csv.writer(open(name, 'w'))
         writer.writerows(lines)
+        writer.close()
+#relabel the perturbed testset: ADD TO SERVER
+def attackfunp(filename):
+    name2=filename[:-4]
+    r = csv.reader(open(filename))  # Here your csv file
+    lines = [l for l in r]
+    for line in lines:
+        line[len(line)-1] = 1
+    name = name2 + "p.csv"
+    namep=name
+    writer = csv.writer(open(name, 'w'))
+    writer.writerows(lines)
 #tab everything after the for loop except for the end print before putting it on a server, don't do this on computer
 attackfun()
+#ADD TO SERVER
+namep=0
+n=0
 #iterate through all possible perturbations
-for name in namearray:
-
+while n<len(namearray):
+    name=namearray[n]
+    attackfunp(name)
     IRIS_TEST=name
+    #ADD to server
+    Perturb_testing=namep
+    n+=10
     #IRIS_TEST = "attackfile2358iju.csv"
     #get the number of bits flipped in the attack file, then reweight
     bitsflipped=0
@@ -78,11 +99,19 @@ for name in namearray:
 
     # Load datasets.
     training_set = tf.contrib.learn.datasets.base.load_csv_without_header(filename=IRIS_TRAINING, features_dtype=np.float64, target_dtype=np.float64)
+
     test_set = tf.contrib.learn.datasets.base.load_csv_without_header(filename=IRIS_TEST, features_dtype=np.float64, target_dtype=np.float64)
+    #ADD TO SERVER(perturbation datasets)
+    training_setp = tf.contrib.learn.datasets.base.load_csv_without_header(filename=IRIS_TRAINING,
+                                                                           features_dtype=np.float64,
+                                                                           target_dtype=np.float64)
+    test_setp = tf.contrib.learn.datasets.base.load_csv_without_header(filename=Perturb_testing, features_dtype=np.float64,
+                                                                      target_dtype=np.float64)
 
     x_train, x_test, y_train, y_test = training_set.data, test_set.data, \
       training_set.target, test_set.target
     feature_columns = [tf.contrib.layers.real_valued_column("", dimension=31)]
+    px_train, py_train, px_test, py_test=training_setp.data, training_setp.target, test_setp.data, test_setp.target
 
     #get and print the number of positive examples(parse check)
     '''pos=0
@@ -98,7 +127,7 @@ for name in namearray:
             pos=pos+1
     print(pos)'''
     #number of times over which to average the network
-    ba=10
+    ba=6
     # initializing relevant variables(ba=number of loops per avg f1, all else self explanatory)
     avgf1 = 0
     avgprecision=0
@@ -184,10 +213,15 @@ for name in namearray:
             #weight = tf.multiply(15.0, tf.cast(tf.equal(y_train, 1), tf.float32) + 1)
 
             classifier = tf.contrib.learn.DNNClassifier(feature_columns=feature_columns, hidden_units=optimizerarraycurrent, n_classes=2)
+            #ADD TO SERVER:  perturbation classifier
+            classifier2 = tf.contrib.learn.DNNClassifier(feature_columns=feature_columns,
+                                                        hidden_units=optimizerarraycurrent, n_classes=2)
             #nn = tf.contrib.learn.Estimator(model_fn=model_fn)
             print("Hi\n")
             # Fit model.
             classifier.fit(x=x_train, y=y_train, steps=1000)
+            #ADD TO SERVER:  fitting pmodel
+            classifier2.fit(x=px_train, y=py_train, steps=1000)
             #evaluate model
             y = classifier.predict_classes(x_test)
             y = list(y)
@@ -210,6 +244,30 @@ for name in namearray:
             truerecall=tp/(tp+fn)
             avgrecall+=truerecall
             truef1=trueprecision*truerecall
+
+            #ADD TO SERVER: perturbation evaluation
+            py = classifier2.predict_classes(px_test)
+            py = list(py)
+            ptn = 0.0
+            ptp = 0.0
+            pfn = 0.0
+            pfp = 0.0
+            for c in range(len(py)):
+                #print(y_test[c])
+                if py[c]==0 and py_test[c]==0.0:
+                   ptn+=1.0
+                if py[c]==1 and py_test[c]==0.0:
+                    pfp+=1.0
+                if py[c]==1 and py_test[c]==1.0:
+                    ptp+=1.0
+                if y[c]==0 and y_test[c]==1.0:
+                    pfn+=1.0
+            Perturb_precision=ptp/(ptp+pfp)
+            
+            Perturb_recall=ptp/(ptp+pfn)
+            
+            pf1=Perturb_precision*Perturb_recall
+
             avgf1+=truef1
             print("True precision: %s\n" % trueprecision)
             print("True recall: %s\n" % truerecall)
@@ -251,10 +309,12 @@ for name in namearray:
         print("Average recall(fraction of emails that are nonspam marked as nonspam): " + str(avgrecall)+"\n")
         print("Bits flipped: %s\n" % bitsflipped)
         print("Change in f1: %s\n" % delf1)
-        if bitsflipped>0:
+        #ADD TO SERVER: new delf1 calc
+        delf1adjusted=delf1-pf1
+        '''if bitsflipped>0:
             delf1adjusted=delf1/bitsflipped
         else:
-            delf1adjusted=delf1
+            delf1adjusted=delf1'''
         if mdfa<delf1adjusted:
             #retrieve ideal perturbation function if changed
             mdfa=delf1adjusted
@@ -270,6 +330,8 @@ for name in namearray:
         optimizerarraycurrent = testincrements(optimizerarraycurrent, 20, 20, 15)
 
 # after the program has tested every possible permutation of attacks print the best
-print("Ideal perturbation function: " + name +"\n")
+#ADD TO SERVER:  now says which file to update
+print("Ideal perturbation function, save to file" + str(n/2) + ": " + name +"\n")
 print("Perturbation performance: %s\n" % mdfa)
 outputfile.close()
+#to do:  get this level of automation up and running, then try and activate the full GAN system
