@@ -1,3 +1,3 @@
 # AANs/NLP/Phishing
-get-pip.py is the main file for computer, attackfunc generates perturbed datasets, attacknetserver is the main file for server, the other .pys are, for now, just csv related cleanup and such
-to-dos:  get the basic classifier online(DONE!), then write the automated attack algorithm(greedy?) (DONE!), then write the Bag of Words for email analysis and defense/do the same for those two
+URLS: get-pip.py is the main file for computer(switch the training data between TrainingData1 and PerturbTrainingData and test data between some specific attack file or perturbtestingdata to change between testing the performance of phishing detection and perturbation detection), attackfunc generates perturbed datasets, attacknetserver is the main file for the server, top5setmaker takes 10 perturbed files and a nonperturbed file and makes a training and testing set for perturbation detection.
+Emails:  perturber.py tests a set of perturbations on the csdmc corpus, kappa.py gets kappa for a given dataset, emltext.py processes emails.
