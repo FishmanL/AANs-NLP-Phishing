@@ -7,6 +7,43 @@ import requests
 def unshorten_url(url):
     return requests.head(url, allow_redirects=True).url
 
+def getkey(y):
+    key=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    savehttp = ''
+
+    # savehttp gets http or https, purge for the rest of the string
+    if y[4] == 's':
+        savehttp = y[:8]
+        j = y[8:]
+        y = j
+    elif y[4] == ':':
+        savehttp = y[:7]
+        j = y[7:]
+        y = j
+        key[11]=1
+    #now get each possible feature
+    iptest = re.search('\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}', y)
+    domarray = [x for x in map(str.strip, y.split('.')) if x]
+    redirarray = [x for x in map(str.strip, y.split('/')) if x]
+    z = redirarray[0]
+    redirdom = [z for z in map(str.strip, z.split('.')) if z]
+    if iptest:
+        key[0]=1
+    if len(y)>30:
+        key[1]=1
+    if 'bit.ly' in y or 'tinyurl' in y or 'tiny.cc' in y:
+        key[2]=1
+    if '@' in y:
+        key[3] = 1
+    if '//' in y:
+        key[4] = 1
+    if '-' in z:
+        key[5]=1
+    if len(redirdom)>3:
+        key[6]=1
+    if 'https' in y:
+        key[7] = 1
+    return key
 
 def perturb(x, key):
     y = x
