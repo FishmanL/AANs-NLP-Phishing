@@ -8,7 +8,7 @@ def unshorten_url(url):
     return requests.head(url, allow_redirects=True).url
 
 def getkey(y):
-    key=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    key=[0 for x in range(31)]
     savehttp = ''
 
     # savehttp gets http or https, purge for the rest of the string
