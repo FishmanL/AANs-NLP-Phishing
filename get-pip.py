@@ -207,7 +207,7 @@ while len(optimizerarraycurrent)==3:
         avgprecision+=trueprecision
         truerecall=tp/(tp+fn)
         avgrecall+=truerecall
-        truef1=trueprecision*truerecall
+        truef1=2*(trueprecision*truerecall)/(trueprecision+truerecall)
         avgf1+=truef1
         print("True precision: %s" % trueprecision)
         print("True recall: %s" % truerecall)
