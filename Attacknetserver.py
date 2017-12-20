@@ -243,7 +243,7 @@ while n<len(namearray):
             avgprecision+=trueprecision
             truerecall=tp/(tp+fn)
             avgrecall+=truerecall
-            truef1=trueprecision*truerecall
+            truef1=2*(trueprecision*truerecall)/(trueprecision+truerecall)
 
             #ADD TO SERVER: perturbation evaluation
             py = classifier2.predict_classes(px_test)
@@ -266,7 +266,7 @@ while n<len(namearray):
             
             Perturb_recall=ptp/(ptp+pfn)
             
-            pf1=Perturb_precision*Perturb_recall
+            pf1=2*(Perturb_precision*Perturb_recall)/(Perturb_precision+Perturb_recall)
 
             avgf1+=truef1
             print("True precision: %s\n" % trueprecision)
