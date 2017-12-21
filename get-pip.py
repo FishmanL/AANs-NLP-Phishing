@@ -183,7 +183,7 @@ while len(optimizerarraycurrent)==3:
 
         classifier = tf.contrib.learn.DNNClassifier(feature_columns=feature_columns, hidden_units=optimizerarraycurrent, n_classes=2)
         #nn = tf.contrib.learn.Estimator(model_fn=model_fn)
-        print("Hi")
+        #print("Hi")
         # Fit model.
         classifier.fit(x=x_train, y=y_train, steps=1000)
         #evaluate model
